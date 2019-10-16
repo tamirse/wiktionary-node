@@ -80,7 +80,7 @@ const get_wiki_entry = (word, searchLanguage) => {
           // get current element language string
           const language = $(elem)
             .text()
-            .substr(2, 8);
+            .substr(2, searchLanguage.length);
 
           // only check the element that matches search language
           if (language === searchLanguage) {
