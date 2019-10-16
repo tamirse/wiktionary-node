@@ -99,8 +99,6 @@ const get_wiki_entry = (word, searchLanguage) => {
         .find("ol")
         .each(function(i, elem) {
           if (searchLanguagePosition === i) {
-            console.log(i);
-
             $(elem)
               .find("ul")
               .empty();
