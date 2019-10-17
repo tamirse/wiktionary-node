@@ -43,8 +43,16 @@ const verify_word = word => {
     });
     req.end(function(res) {
       if (res.error) reject(res.error);
-      const data = res.body.query.search;
-      if (data.length == 0) {
+
+      let data = null;
+
+      if (res.body !== undefined && res.body.query !== undefined) {
+        data = res.body.query.search;
+      }
+
+      if (data === null) {
+        reject({ info: "error" });
+      } else if (data.length == 0) {
         reject({ info: "word does not exist" });
       } else {
         resolve(data[0].title);
@@ -62,7 +70,15 @@ const get_wiki_entry = (word, searchLanguage) => {
       "cache-control": "no-cache"
     });
     req.end(function(res) {
-      if (res.error) reject(res.error);
+      if (res.error) {
+        reject(res.error);
+        return;
+      }
+      if (res.body === undefined) {
+        reject("error");
+        return;
+      }
+
       let dictionary = {
         word: word,
         language: "en",
@@ -85,7 +101,7 @@ const get_wiki_entry = (word, searchLanguage) => {
           // only check the element that matches search language
           if (language === searchLanguage) {
             const text = $(elem).text();
-            searchLanguagePosition = i;
+            searchLanguagePosition = i; // mark the position of the correct search language data
             for (let x in speech) {
               count += patch(speech[x], text);
             }
@@ -102,37 +118,44 @@ const get_wiki_entry = (word, searchLanguage) => {
             $(elem)
               .find("ul")
               .empty();
+
+            // get current part of speech
             let curspeech = $(elem)
               .prev()
               .prev()
               .text();
-            let onedefinition = {
+
+            let oneDefinition = {
               speech: curspeech,
               lines: []
             };
 
+            // get the definitions for the current part of speech
             $(elem)
               .children()
               .each(function(i1, elem1) {
                 let print = $(elem1)
                   .text()
                   .split("\n");
-                let oneline = {
+
+                let oneLine = {
                   define: "",
                   examples: []
                 };
+
                 for (let x in print) {
                   if (x == 0) {
-                    oneline["define"] = print[x];
+                    oneLine["define"] = print[x];
                   } else {
                     if (print[x]) {
-                      oneline["examples"].push(print[x]);
+                      oneLine["examples"].push(print[x]);
                     }
                   }
                 }
-                onedefinition["lines"].push(oneline);
+
+                oneDefinition["lines"].push(oneLine);
               });
-            dictionary["definitions"].push(onedefinition);
+            dictionary["definitions"].push(oneDefinition);
           }
         });
       resolve(dictionary);
